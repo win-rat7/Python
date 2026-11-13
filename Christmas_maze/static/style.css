@@ -1,0 +1,203 @@
+:root {
+    --bg: #0b1a2a;
+    --accent: #81e4ef;
+    --ghost: #f0f4f8;
+    --blood: #c0392b;
+    --green: #1e7a3c;
+}
+
+body {
+    background: var(--bg);
+    color: var(--ghost);
+    font-family: 'Marck Script', cursive;
+    text-align: center;
+    padding-top: 80px;
+    margin: 0;
+    min-height: 100vh;
+}
+
+h1 {
+    color: var(--accent);
+    font-size: 2.2em;
+    margin-bottom: 20px;
+}
+
+p {
+    font-size: 1.2em;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+
+/*кнопки*/
+button {
+    background: var(--accent);
+    color: #000;
+    border: 3px solid #000;
+    padding: 12px 30px;
+    font-size: 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--accent);
+}
+
+.btn {
+    display: inline-block;
+    background: var(--accent);
+    color: #000;
+    border: 3px solid #000;
+    padding: 12px 30px;
+    font-size: 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--accent);
+}
+
+
+/*ввод имени*/
+input[type="text"] {
+    padding: 10px 15px;
+    font-size: 18px;
+    border: 3px solid var(--accent);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--ghost);
+    font-family: inherit;
+    margin-right: 10px;
+}
+
+input[type="text"]::placeholder {
+    color: rgba(240, 244, 248, 0.5);
+}
+
+
+/*двери */
+.doors {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 40px 0;
+}
+
+.doors img {
+    width: 120px;
+    height: 200px;
+    border: 3px solid var(--accent);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.doors img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--accent);
+}
+
+
+/*подарки*/
+.presents {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 30px;
+    background: rgba(11, 26, 42, 0.7);
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 2px solid var(--accent);
+    /* тень под цвет accent (было золото — не совпадало с голубым accent) */
+    box-shadow: 0 0 15px rgba(129, 228, 239, 0.4);
+}
+
+
+/*топ-10 (экран конца)*/
+.scores {
+    max-width: 500px;
+    margin: 30px auto;
+    text-align: left;
+    background: rgba(11, 26, 42, 0.6);
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid var(--accent);
+}
+
+.scores h2 {
+    text-align: center;
+    margin-top: 0;
+    color: var(--accent);
+}
+
+.scores ol {
+    padding-left: 30px;
+}
+
+.scores li {
+    padding: 4px 0;
+}
+
+
+/*  Плохая дверь  */
+.bad {
+    color: var(--blood);
+    font-size: 24px;
+    font-weight: bold;
+}
+
+
+/*снежинки (два слоя, разные скорости) ИСПОЛЬЗОВАН ИИ*/
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/*задний слой — мелкие, медленные*/
+body::before {
+    background-image:
+        radial-gradient(1px 1px at 10% 20%, white, transparent),
+        radial-gradient(1px 1px at 40% 70%, white, transparent),
+        radial-gradient(1px 1px at 70% 30%, white, transparent),
+        radial-gradient(1px 1px at 90% 80%, white, transparent);
+    background-size: 200px 200px;
+    opacity: 0.4;
+    animation: snowfall-slow 15s linear infinite;
+}
+
+/*передний слой — крупные, быстрые*/
+body::after {
+    background-image:
+        radial-gradient(2px 2px at 25% 40%, white, transparent),
+        radial-gradient(2px 2px at 60% 10%, white, transparent),
+        radial-gradient(3px 3px at 85% 60%, white, transparent),
+        radial-gradient(2px 2px at 15% 90%, white, transparent);
+    background-size: 300px 300px;
+    opacity: 0.7;
+    animation: snowfall-fast 8s linear infinite;
+}
+
+/*каждый слой сдвигается на СВОЙ size — иначе рывок на стыке цикла */
+@keyframes snowfall-slow {
+    from { background-position: 0 0; }
+    to   { background-position: 0 200px; }
+}
+
+@keyframes snowfall-fast {
+    from { background-position: 0 0; }
+    to   { background-position: 0 300px; }
+}

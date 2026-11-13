@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Лабиринт — комната {{room}}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Комната {{room}} из {{total}}</h1>
+    <p>Выберите дверь:</p>
+
+    <div class="doors">
+        <a href="/game?g={{g}}&door=1"><img src="/static/img/door1.png" alt="Дверь 1"></a>
+        <a href="/game?g={{g}}&door=2"><img src="/static/img/door2.png" alt="Дверь 2"></a>
+        <a href="/game?g={{g}}&door=3"><img src="/static/img/door3.png" alt="Дверь 3"></a>
+    </div>
+
+    <div class="presents">
+        {{presents_icons}}
+    </div>
+</body>
+</html>
