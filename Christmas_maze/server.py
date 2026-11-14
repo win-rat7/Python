@@ -1,10 +1,10 @@
+import json
+import mimetypes
+import random
+import uuid
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-import mimetypes
-import uuid
-from urllib.parse import urlparse, parse_qs
-import random
-import json
+from urllib.parse import parse_qs, urlparse
 
 # УЯЗВИМОСТИ
 # XSS — имя в /game без html.escape;
@@ -107,7 +107,7 @@ def render_game_page(game_id, game):
     return (template
             .replace("{{room}}", str(game["room"]))
             .replace("{{total}}", str(TOTAL_ROOMS))
-            .replace("{{name}}", game["name"])     #!!!!!!!!!!!!!!! XSS name без html.escape!!!!!!!!!!!!!!!!!!!//
+            .replace("{{name}}", game["name"])    #XSS name без html.escape!!!!!!!!!!!!!!!!!!!
             .replace("{{g}}", game_id)
             .replace("{{presents}}", str(game["presents"]))
             .replace("{{presents_icons}}", presents_icons))
