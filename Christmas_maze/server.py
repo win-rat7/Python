@@ -1,3 +1,4 @@
+import html
 import json
 import mimetypes
 import random
@@ -7,9 +8,9 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 # УЯЗВИМОСТИ
-# XSS — имя в /game без html.escape;
-# IDOR — /game?g=<id> открывает любую игру;
-# Path Traversal — /static/../server.py читает server.py (уберём startswith — позже).
+#XSS — имя в /game без html.escape
+#IDOR — /game?g=<id> открывает любую игру
+#Path Traversal — /static/../server.py читает server.py
 
 
 
@@ -102,12 +103,11 @@ def step(game, door):   #Обрабатывает клик, меняет game, �
 
 def render_game_page(game_id, game):
     template = (TEMPLATES_DIR / "game.html").read_text(encoding="utf-8")
-    presents_icons = ("🎁" * game["presents"]
-                      + "🖤" * (START_PRESENTS - game["presents"]))
+    presents_icons = ("🎁" * game["presents"] + "🖤" * (START_PRESENTS - game["presents"]))
     return (template
             .replace("{{room}}", str(game["room"]))
             .replace("{{total}}", str(TOTAL_ROOMS))
-            .replace("{{name}}", game["name"])    #XSS name без html.escape!!!!!!!!!!!!!!!!!!!
+            .replace("{{name}}", html.escape(game["name"]))    #XSS(больше не работает) с name без html.escape
             .replace("{{g}}", game_id)
             .replace("{{presents}}", str(game["presents"]))
             .replace("{{presents_icons}}", presents_icons))
@@ -120,8 +120,8 @@ def render_bad_door_page(game_id, game):
 
 def render_end_page(result, game):
     scores = top10()
-    rows = "".join(       #XSS (A03:2021): s['name'] без html.escape (stored XSS)
-        f"<li>{s['name']} — {s['rooms']} комнат "
+    rows = "".join(       #XSS(больше не работает) s['name'] с html.escape
+        f"<li>{html.escape(s['name'])} — {s['rooms']} комнат "
         f"({s['presents']} 🎁) [{s['result']}]</li>"
         for s in scores
     )
@@ -170,20 +170,45 @@ class Handler(BaseHTTPRequestHandler):
             #создание игры
             if "name" in query:
                 name = query["name"][0].strip()
+                
                 if not name:
                     self.send_error(400, "Empty name")
                     return
+
                 game_id, game = new_game(name)
+                self.send_response(302)
+                self.send_header("Location", f"/game?g={game_id}")
+
+                #добавляем куку с нашим game_id
+                self.send_header("Set-Cookie", f"session={game_id}; HttpOnly")
+                self.end_headers()
+                return
+
                 self.send_response(302)
                 self.send_header("Location", f"/game?g={game_id}")
                 self.end_headers()
                 return
 
-            #достать игру !!!!!!!!!!!!!!!!!!!!IDOR: любой g открывает чужую игру!!!!!!!!!!!!!!!!!!!!!!!!!!
+            #достать игру !IDOR(больше не работает) любой g открывает чужую игру!
             g = query.get("g", [""])[0]
             if g not in games:
                 self.send_error(404, "Game not found")
                 return
+
+            #проверка IDOR
+            cookie_header = self.headers.get('Cookie', '')
+            #простой парсинг куки (ищем session=...)
+            session_id = None
+            if "session=" in cookie_header:
+                for part in cookie_header.split(';'):
+                    if part.strip().startswith('session='):
+                        session_id = part.strip().split('=')[1]
+
+            #если сессия не совпадает с запрашиваемым g — отказ
+            if session_id != g:
+                self.send_error(403, "Forbidden: You dont own this game.")
+                return
+
             game = games[g]
 
             #клик по двери
@@ -222,24 +247,32 @@ class Handler(BaseHTTPRequestHandler):
                 self._send_html(render_game_page(g, game))
             return
 
-        #/static/ !!!!!!!!!!!!!!!!!!11!!! Path Traversal: не проверки startswith!!!!!!!!!!!!!!!!!
+               # 4) статика (ЗАЩИЩЕНО ОТ PATH TRAVERSAL)
         if self.path.startswith("/static/"):
             rel_path = self.path[len("/static/"):]
-            file_path = (BASE_DIR / "static" / rel_path).resolve()
+            
+            #получаем абсолютный путь к папке static
+            static_dir = (BASE_DIR / "static").resolve()
+            #получаем абсолютный путь к запрашиваемому файлу
+            file_path = (static_dir / rel_path).resolve()
+
+            #если файл оказался ВНЕ папки static — запрещаем
+            if not str(file_path).startswith(str(static_dir)):
+                self.send_error(403, "Forbidden")
+                return
+
             if not file_path.is_file():
                 self.send_error(404, "File not found")
                 return
+                
             content_type, _ = mimetypes.guess_type(str(file_path))
             data = file_path.read_bytes()
             self.send_response(200)
-            self.send_header("Content-Type",
-                             content_type or "application/octet-stream")
+            self.send_header("Content-Type", content_type or "application/octet-stream")
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
             return
-
-        self.send_error(404, "Not found")
 
 if __name__ == "__main__":
     server = HTTPServer((HOST, PORT), Handler)
