@@ -1,0 +1,16 @@
+--- server.py (уязвимая версия)
++++ server.py (защищенная версия)
+@@ -195,6 +195,13 @@
+         if self.path.startswith("/static/"):
+             rel_path = self.path[len("/static/"):]
+             file_path = (BASE_DIR / "static" / rel_path).resolve()
+ 
++            #Path Traversal исправлен: проверяем, что файл лежит внутри static/
++            static_dir = (BASE_DIR / "static").resolve()
++            if not str(file_path).startswith(str(static_dir)):
++                self.send_error(403, "Forbidden")
++                return
++
+             if not file_path.is_file():
+                 self.send_error(404, "File not found")
+                 return

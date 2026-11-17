@@ -1,0 +1,14 @@
+--- server.py (уязвимая версия)
++++ server.py (защищенная версия)
+@@ -140,7 +140,8 @@
+-# XSS: name без html.escape (A03:2021)
+-.replace("{{name}}", game["name"])
++import html
++#XSS исправлен: используем html.escape() для экранирования
++.replace("{{name}}", html.escape(game["name"]))
+
+@@ -155,7 +156,8 @@
+-# XSS: s['name'] без html.escape (stored XSS)
+-f"<li>{s['name']} — {s['rooms']} комнат "
++#XSS исправлен: используем html.escape() в топ-10
++f"<li>{html.escape(s['name'])} — {s['rooms']} комнат "
